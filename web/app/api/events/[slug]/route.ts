@@ -23,7 +23,9 @@ type IEvent = {
   updatedAt: Date;
 }
 
-const GET = async({params}: {params: Promise<{slug: string}>}): Promise<NextResponse> => {
+
+
+const GET = async(req:NextRequest, {params}: {params: Promise<{slug: string}>}): Promise<NextResponse> => {
     try{
         await connectDb();
 

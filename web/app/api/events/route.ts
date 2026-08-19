@@ -49,7 +49,7 @@ export const POST = async(req: NextRequest) => {
 }
 
 
-export const GET = async() => {
+export const GET = async(req:NextRequest) => {
     try{
         await connectDb();
 
