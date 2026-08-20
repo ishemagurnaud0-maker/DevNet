@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import EventDetailItem from "@/components/EventDetailItem";
-
+import EventAgenda from "@/components/EventAgenda";
+import EventTags from "@/components/EventTags";
 
 
 type Props = {
@@ -15,12 +16,34 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 const EventDetailsPage = async({ params }: Props) => {
     const { slug } = await params;
-    const response = await fetch(`${BASE_URL}/api/events/${slug}`);
-    const { event } = await response.json();
+    let event;
+
+    try{
+      const request = await fetch(`${BASE_URL}/api/events/${slug}`,{
+        next: {revalidate: 60 }
+      });
+
+      if(!request.ok) {
+          if(request.status === 404) return notFound();
+
+          throw new Error(`Failed to fetch event data: ${request.statusText}`);
+      }
+
+      const response = await request.json();
+      event = response.event;
+
+      if(!event) return notFound();
+
+    }catch(err){
+      console.log("Failed to fetch event.");
+      throw err;
+    }
+
+    
 
     if(!event) return notFound();
 
-    const { description, overview, agenda, date, time, image , mode, audience, tags, location } = event;
+    const { description, overview, agenda, date, time, image , mode, audience, tags, location, organizer } = event;
   return (
     <section id="event">
       <div className="header">
@@ -46,7 +69,14 @@ const EventDetailsPage = async({ params }: Props) => {
                 <EventDetailItem icon="audience.svg" alt="audience" label={audience} />
             </section>
 
-            
+          <EventAgenda agendaItems={JSON.parse(agenda[0])} />
+
+          <section className='flex-col gap-2'>
+            <h2>About the Organizer</h2>
+            <p>{organizer}</p>
+          </section>
+
+          <EventTags tags={JSON.parse(tags[0])} />
           </div>
          {/*Right side */}
 
