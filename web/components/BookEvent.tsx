@@ -3,8 +3,9 @@
 import connectDb from "@/lib/mongodb";
 import Booking from "@/database/bookings.model";
 import { useState } from "react";
+import {createBooking} from "@/lib/severActions/booking.action";
 
-const BookEvent = () => {
+const BookEvent = ({slug}: {slug: string}) => {
     const [email,setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
 
@@ -14,6 +15,8 @@ const BookEvent = () => {
         setTimeout(()=>{
             setSubmitted(true);
         },1000);
+
+        await createBooking(email,slug);
     }
 
   return (

@@ -5,7 +5,7 @@ import connectDb from '@/lib/mongodb';
 import type {IEvent} from '@/database/events.model'
 
 
-const getSimilarEventBySlug = async(slug: string): Promise<IEvent[]> => {
+ export const getSimilarEventBySlug = async(slug: string): Promise<IEvent[]> => {
     try{
         await connectDb();
 
@@ -21,5 +21,4 @@ const getSimilarEventBySlug = async(slug: string): Promise<IEvent[]> => {
 
 
 }
-
-export default getSimilarEventBySlug;
+ 
