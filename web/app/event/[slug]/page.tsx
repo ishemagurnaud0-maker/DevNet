@@ -5,7 +5,7 @@ import EventAgenda from "@/components/EventAgenda";
 import EventTags from "@/components/EventTags";
 import BookEvent from "@/components/BookEvent";
 import type {IEvent} from "@/database/events.model";
-import getSimilarEventBySlug from "@/lib/severActions/getter";
+import getSimilarEventBySlug from "@/lib/severActions/events.action";
 import EventCard from "@/components/EventCard";
 
 type Props = {
