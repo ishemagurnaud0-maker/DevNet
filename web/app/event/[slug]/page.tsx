@@ -1,8 +1,13 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import EventDetailItem from "@/components/EventDetailItem";
-
+import EventAgenda from "@/components/EventAgenda";
+import EventTags from "@/components/EventTags";
+import BookEvent from "@/components/BookEvent";
+import type {IEvent} from "@/database/events.model";
+import { getSimilarEventBySlug } from "@/lib/severActions/events.action";
+import EventCard from "@/components/EventCard";
+import { cacheLife } from "next/cache";
 
 
 type Props = {
@@ -14,13 +19,42 @@ type Props = {
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 const EventDetailsPage = async({ params }: Props) => {
+'use cache'
+cacheLife('hours');
+
     const { slug } = await params;
-    const response = await fetch(`${BASE_URL}/api/events/${slug}`);
-    const { event } = await response.json();
+    let event: IEvent;
+
+    try{
+      const request = await fetch(`${BASE_URL}/api/events/${slug}`,{
+        next: {revalidate: 60 }
+      });
+
+      if(!request.ok) {
+          if(request.status === 404) return notFound();
+
+          throw new Error(`Failed to fetch event data: ${request.statusText}`);
+      }
+
+      const response = await request.json();
+      event = response.event;
+
+      if(!event) return notFound();
+
+    }catch(err){
+      console.log("Failed to fetch event.");
+      throw err;
+    }
+
+    
 
     if(!event) return notFound();
 
-    const { description, overview, agenda, date, time, image , mode, audience, tags, location } = event;
+    const { description, overview, agenda, date, time, image , mode, audience, tags, location, organizer } = event;
+    const bookings = 10;
+
+    const similarEvents: IEvent[] = await getSimilarEventBySlug(slug);
+
   return (
     <section id="event">
       <div className="header">
@@ -46,14 +80,42 @@ const EventDetailsPage = async({ params }: Props) => {
                 <EventDetailItem icon="audience.svg" alt="audience" label={audience} />
             </section>
 
-            
+          <EventAgenda agendaItems={agenda} />
+
+          <section className='flex-col gap-2'>
+            <h2>About the Organizer</h2>
+            <p>{organizer}</p>
+          </section>
+
+          <EventTags tags={tags} />
+
+
           </div>
          {/*Right side */}
 
          <aside className='booking'>
-          <p className='text-lg font-semibold '>Book Event</p>
+          <div className='signup-card'>
+              <h2>Book Your Spot</h2>
+              {bookings > 0 ? (
+                <p className="text-sm">Join other {bookings} who booked their spot.</p>
+              ): (
+                <p className="text-sm">Be the first one to book your spot!</p>
+              )}
+
+              <BookEvent slug={slug}/>
+          </div>
          </aside>
       </div>
+
+      <div className='flex w-full gap-4 flex-col pt-20'>
+        <h2>Similar Events</h2>
+        <div className="events">
+          {similarEvents.length > 0 && similarEvents.map((similarEvent: IEvent) => (
+              <EventCard key={similarEvent.title} {...similarEvent}/>
+          ))}
+        </div>
+      </div>
+
     </section>
   )
 }
