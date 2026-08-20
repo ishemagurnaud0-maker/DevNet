@@ -12,11 +12,13 @@ const BookEvent = ({slug}: {slug: string}) => {
     const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
         
-        setTimeout(()=>{
-            setSubmitted(true);
-        },1000);
+        const { success } = await createBooking(email,slug);
 
-        await createBooking(email,slug);
+        if(success){
+            setSubmitted(true);
+        }else {
+            console.log('Booking creation failed.');
+        }
     }
 
   return (

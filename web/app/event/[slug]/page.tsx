@@ -7,6 +7,8 @@ import BookEvent from "@/components/BookEvent";
 import type {IEvent} from "@/database/events.model";
 import { getSimilarEventBySlug } from "@/lib/severActions/events.action";
 import EventCard from "@/components/EventCard";
+import { cacheLife } from "next/cache";
+
 
 type Props = {
   params: Promise<{
@@ -17,6 +19,9 @@ type Props = {
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 const EventDetailsPage = async({ params }: Props) => {
+'use cache'
+cacheLife('hours');
+
     const { slug } = await params;
     let event: IEvent;
 
