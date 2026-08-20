@@ -2,6 +2,7 @@ import { NextRequest,NextResponse } from "next/server";
 import connectDb from "@/lib/mongodb";
 import Event from "@/database/events.model"
 import {v2 as cloudinary} from "cloudinary";
+import type {IEvent} from "@/database/events.model"
 
 export const POST = async(req: NextRequest) => {
     try{
@@ -20,6 +21,9 @@ export const POST = async(req: NextRequest) => {
 
             if(!file) return NextResponse.json({message:"Please upload an image for the event."},{status:400});
 
+            let tags = JSON.parse(formData.get('tags') as string);
+            let agenda = JSON.parse(formData.get('agenda') as string);
+
             const arrayBuffer = await file.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
 
@@ -32,10 +36,14 @@ export const POST = async(req: NextRequest) => {
 
             event.image = uploadResult.secure_url;
 
-        const createdEvent = await Event.create(event);
+        const createdEvent = await Event.create({
+            ...event,
+            tags: tags,
+            agenda: agenda
+        });
         console.log(`The event with ${event.title} title has been created.`);
 
-        return NextResponse.json({message:`The ${event.title} event has bee created.`}, {status:201});
+        return NextResponse.json({message:`The ${event.title} event has bee created.`, event: createdEvent}, {status:201});
 
     }catch(err){
         console.log(err);
@@ -49,11 +57,11 @@ export const POST = async(req: NextRequest) => {
 }
 
 
-export const GET = async(req:NextRequest) => {
+export const GET = async(req: NextRequest): Promise<NextResponse> => {
     try{
         await connectDb();
 
-        const events = await Event.find().sort({ createdAt: -1 });
+        const events: IEvent[] = await Event.find().sort({ createdAt: -1 });
         return NextResponse.json({message:"Available events.", events},{status:200});
     }catch(err){
         console.log(err);

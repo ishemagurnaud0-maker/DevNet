@@ -1,18 +1,25 @@
+'use server';
+
 import Event from '@/database/events.model';
 import connectDb from '@/lib/mongodb';
-import IEvent from '@/database/events.model'
+import type {IEvent} from '@/database/events.model'
 
 
-const getEventBySlug = async(slug: string) :Promise<typeof IEvent> {
+const getSimilarEventBySlug = async(slug: string): Promise<IEvent[]> => {
     try{
         await connectDb();
 
-        const properSlug
+        const event = await Event.findOne({slug});
+        const similarEvents: IEvent[] = await Event.find({ _id: { $ne: event._id}, tags: { $in: event.tags} }).lean();
+
+        return similarEvents;
 
     }catch(err){
         console.log(err);
-        throw err;
+        return [];
     }
 
 
 }
+
+export default getSimilarEventBySlug;
